@@ -4,7 +4,7 @@
 set -e
 
 # Check jq is installed
-# command -v jq >/dev/null 2>&1 || { echo >&2 "I require jq but it's not installed.  Aborting."; exit 1; }
+command -v jq >/dev/null 2>&1 || { echo >&2 "I require jq but it's not installed.  Aborting."; exit 1; }
 
 # Heroku target is staging by default, or command line parameter
 target="${1:-staging}"
