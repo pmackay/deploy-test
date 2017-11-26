@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# Exit if any subcommand fails
+set -e
+
+# Check jq is installed
+type jq >/dev/null 2>&1 || { echo >&2 "I require jq but it's not installed.  Aborting."; exit 1; }
+
+# Heroku target is staging by default, or command line parameter
+target="${1:-staging}"
+echo $target
+
+last_deploy=$(heroku releases --remote $target | jq .[1].description)
+echo $last_deploy
+last_deployed_commit=$(echo $last_deploy | sed 's/.*Deploy \([a-z0-9]*\).*/\1/')
+echo $last_deployed_commit
+
+# migrate_diff=$(git diff --shortstat $last_deployed_commit HEAD -- db/migrate)
+migrate_diff=$(git diff --shortstat $last_deployed_commit HEAD)
+echo $migrate_diff
+
+# if [ -n $migrate_diff ]; then
+#   echo 'db/migrate has changed, running migrations'
+#   heroku run rails db:migrate $APP_ARG
+# fi
