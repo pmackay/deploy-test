@@ -10,7 +10,7 @@ command -v jq >/dev/null 2>&1 || { echo >&2 "I require jq but it's not installed
 target="${1:-staging}"
 echo $target
 
-last_deploy=$(heroku releases --remote $target | jq .[1].description)
+last_deploy=$(heroku releases --json --remote $target | jq .[1].description)
 echo $last_deploy
 last_deployed_commit=$(echo $last_deploy | sed 's/.*Deploy \([a-z0-9]*\).*/\1/')
 echo $last_deployed_commit
