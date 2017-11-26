@@ -19,7 +19,11 @@ echo $last_deployed_commit
 migrate_diff=$(git diff --shortstat $last_deployed_commit HEAD)
 echo $migrate_diff
 
-if [ -n $migrate_diff ]; then
-  echo 'db/migrate has changed, running migrations'
+if [ -n "$migrate_diff" ]; then
+  echo "db/migrate has changed, running migrations"
+  heroku maintenance:on --remote $target
   heroku run rails db:migrate --remote $target
+  heroku maintenance:off --remote $target
+else
+  echo "No change to migrations, skipping db:migrate"
 fi
