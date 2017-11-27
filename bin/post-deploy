@@ -22,23 +22,30 @@ git push -f origin "refs/tags/$target"
 last_deploy=$(heroku releases --json --remote $target | jq .[1].description)
 last_deployed_commit=$(echo $last_deploy | sed 's/.*Deploy \([a-z0-9]*\).*/\1/')
 
+# Run db:migrate and/or update elasticsearch indexes (only if needed)
 migrate_diff=$(git diff --shortstat $last_deployed_commit HEAD -- db/migrate)
-
-if [ -n "$migrate_diff" ]; then
-  echo "db/migrate has changed, running migrations"
-  heroku maintenance:on --remote $target
-  heroku run rails db:migrate --remote $target
-  heroku restart --remote "$target"
-  heroku maintenance:off --remote $target
-else
-  echo "No change to migrations, skipping db:migrate"
-fi
-
 elasticsearch_diff=$(git diff --shortstat $last_deployed_commit HEAD -- app/models)
 
-if [ -n "$elasticsearch_diff" ]; then
-  echo "app/models has changed, indexing elasticsearch"
-  heroku run 'rake environment elasticsearch:index:create elasticsearch:import:all' --remote $target
-else
-  echo "No change to app/models, skipping elasticsearch indexing"
+if [ -n "$migrate_diff" || -n "$elasticsearch_diff"]; then
+  heroku maintenance:on --remote $target
+  heroku ps:scale worker=0
+
+  if [ -n "$migrate_diff" ]; then
+    echo "db/migrate has changed, running migrations"
+    heroku run rails db:migrate --remote $target
+  else
+    echo "No change to migrations, skipping db:migrate"
+  fi
+
+  if [ -n "$elasticsearch_diff" ]; then
+    echo "app/models has changed, indexing elasticsearch"
+    heroku run 'rake environment elasticsearch:index:create elasticsearch:import:all' --remote $target
+  else
+    echo "No change to app/models, skipping elasticsearch indexing"
+  fi
+
+  heroku restart --remote "$target"
+  heroku ps:scale worker=1
+  heroku maintenance:off --remote $target
 fi
+
