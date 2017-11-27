@@ -12,7 +12,7 @@ target="${1:-staging}"
 # Update tag related to deployment
 git fetch --tags --all --unshallow || true
 git tag "$target" -f
-git push -f origin HEAD
+git push -f origin "refs/tags/$target"
 
 # Get the commit hash of the last release
 last_deploy=$(heroku releases --json --remote $target | jq .[1].description)
