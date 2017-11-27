@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# Exit if any subcommand fails
+set -e
+
+branch="$(git symbolic-ref HEAD --short)"
+# Heroku target is staging by default, or command line parameter
+target="${1:-staging}"
+
+git fetch --tags --all --unshallow
+git tag "$target" -f
+git push -f origin HEAD
+
+git push "$target" "$branch:master"
+
+bin/post-deploy $*

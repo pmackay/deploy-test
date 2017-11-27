@@ -8,20 +8,18 @@ command -v jq >/dev/null 2>&1 || { echo >&2 "I require jq but it's not installed
 
 # Heroku target is staging by default, or command line parameter
 target="${1:-staging}"
-echo $target
 
+# Get the commit hash of the last release
 last_deploy=$(heroku releases --json --remote $target | jq .[1].description)
-echo $last_deploy
 last_deployed_commit=$(echo $last_deploy | sed 's/.*Deploy \([a-z0-9]*\).*/\1/')
-echo $last_deployed_commit
 
 migrate_diff=$(git diff --shortstat $last_deployed_commit HEAD -- db/migrate)
-echo $migrate_diff
 
 if [ -n "$migrate_diff" ]; then
   echo "db/migrate has changed, running migrations"
   heroku maintenance:on --remote $target
   heroku run rails db:migrate --remote $target
+  heroku restart --remote "$target"
   heroku maintenance:off --remote $target
 else
   echo "No change to migrations, skipping db:migrate"
