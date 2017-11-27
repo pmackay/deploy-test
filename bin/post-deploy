@@ -9,6 +9,11 @@ command -v jq >/dev/null 2>&1 || { echo >&2 "I require jq but it's not installed
 # Heroku target is staging by default, or command line parameter
 target="${1:-staging}"
 
+# Update tag related to deployment
+git fetch --tags --all --unshallow || true
+git tag "$target" -f
+git push -f origin HEAD
+
 # Get the commit hash of the last release
 last_deploy=$(heroku releases --json --remote $target | jq .[1].description)
 last_deployed_commit=$(echo $last_deploy | sed 's/.*Deploy \([a-z0-9]*\).*/\1/')
