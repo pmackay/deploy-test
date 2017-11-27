@@ -38,7 +38,7 @@ elasticsearch_diff=$(git diff --shortstat $last_deployed_commit HEAD -- app/mode
 
 if [ -n "$elasticsearch_diff" ]; then
   echo "app/models has changed, indexing elasticsearch"
-  heroku run 'rake environment elasticsearch:index:create elasticsearch:import:all'
+  heroku run 'rake environment elasticsearch:index:create elasticsearch:import:all' --remote $target
 else
   echo "No change to app/models, skipping elasticsearch indexing"
 fi
