@@ -28,7 +28,7 @@ elasticsearch_diff=$(git diff --shortstat $last_deployed_commit HEAD -- app/mode
 
 if [ -n "$migrate_diff" ] || [ -n "$elasticsearch_diff"]; then
   heroku maintenance:on --remote $target
-  heroku ps:scale worker=0
+  heroku ps:scale worker=0 --remote $target
 
   if [ -n "$migrate_diff" ]; then
     echo "db/migrate has changed, running migrations"
@@ -45,7 +45,7 @@ if [ -n "$migrate_diff" ] || [ -n "$elasticsearch_diff"]; then
   fi
 
   heroku restart --remote "$target"
-  heroku ps:scale worker=1
+  heroku ps:scale worker=1 --remote $target
   heroku maintenance:off --remote $target
 fi
 
