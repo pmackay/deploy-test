@@ -26,7 +26,7 @@ last_deployed_commit=$(echo $last_deploy | sed 's/.*Deploy \([a-z0-9]*\).*/\1/')
 migrate_diff=$(git diff --shortstat $last_deployed_commit HEAD -- db/migrate)
 elasticsearch_diff=$(git diff --shortstat $last_deployed_commit HEAD -- app/models)
 
-if [ -n "$migrate_diff" || -n "$elasticsearch_diff"]; then
+if [ -n "$migrate_diff" ] || [ -n "$elasticsearch_diff"]; then
   heroku maintenance:on --remote $target
   heroku ps:scale worker=0
 
