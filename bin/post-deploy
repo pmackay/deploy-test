@@ -10,8 +10,10 @@ command -v jq >/dev/null 2>&1 || { echo >&2 "I require jq but it's not installed
 target="${1:-staging}"
 
 # Update tag related to deployment
-if [ ! -e $(git rev-parse --git-dir)/shallow ]; then
+if [ -f $(git rev-parse --git-dir)/shallow ]; then
   git fetch --tags --all --unshallow
+else
+  echo "Skipping fetch, this is not a shallow repo"
 fi
 git tag "$target" -f
 git push -f origin "refs/tags/$target"
